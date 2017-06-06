@@ -56,6 +56,7 @@ let createApp config =
         ]
         path "/login" >=> Redirection.FOUND loginUrl
         path "/oauth" >=> request (fun req ->
+            // todo: handle oauth rejection
             match req.queryParam "code" with
             | Choice1Of2 c -> Successful.OK "thanks"
             | Choice2Of2 x -> RequestErrors.BAD_REQUEST x

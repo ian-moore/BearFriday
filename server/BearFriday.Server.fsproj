@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Instagram.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Server.fs" />
     <None Include="web.config">
@@ -15,9 +16,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Chiron" Version="6.2.1" />
+    <PackageReference Include="FSharp.Azure.Storage" Version="2.1.0" />
     <PackageReference Include="FSharp.Core" Version="4.1.*" />
-    <PackageReference Include="FSharp.Data" Version="2.3.3" />
     <PackageReference Include="FSharp.NET.Sdk" Version="1.0.*" PrivateAssets="All" />
+    <PackageReference Include="Http.fs" Version="4.1.1" />
     <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
     <PackageReference Include="Suave" Version="2.1.0" />
   </ItemGroup>

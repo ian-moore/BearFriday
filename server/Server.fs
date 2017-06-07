@@ -9,7 +9,9 @@ let appConfig =
       EnableTuesday = false
       InstagramClientId = CloudConfigurationManager.GetSetting "IGClientId"
       InstagramClientSecret = CloudConfigurationManager.GetSetting "IGClientSecret"
-      InstagramRedirectUri = CloudConfigurationManager.GetSetting "IGRedirectUri" }
+      InstagramRedirectUri = CloudConfigurationManager.GetSetting "IGRedirectUri"
+      AzureConnection = CloudConfigurationManager.GetSetting "AzureStorageConnectionString"
+      AzureTable = CloudConfigurationManager.GetSetting "AzureStorageTableName" }
 
 [<EntryPoint>]
 let main argv =

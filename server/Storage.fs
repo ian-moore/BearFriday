@@ -19,7 +19,7 @@ let defaultUser =
 type StorageClient (connectionString, tableName) =
     let a = CloudStorageAccount.Parse connectionString
     let tc = a.CreateCloudTableClient ()
-    let inMyTable x = inTable tc tableName x
+    let inMyTable = inTable tc tableName
     let fromMyTable q = fromTable tc tableName q
 
     member this.InsertOrReplace x =

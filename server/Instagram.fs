@@ -12,14 +12,14 @@ let buildAuthUrl =
 //           "profile_picture": "https://scontent.cdninstagram.com/a.jpg", 
 //           "full_name": "Ian Moore", "bio": "", "website": ""}}
 
-type User =
+type InstagramUser =
     { Id: string
       Username: string
       ProfilePicture: string
       FullName: string
       Bio: string
       Website: string }
-    static member FromJson(_:User) = json {
+    static member FromJson(_:InstagramUser) = json {
             let! id = Json.read "id"
             let! un = Json.read "username"
             let! pp = Json.read "profile_picture"
@@ -31,7 +31,7 @@ type User =
 
 type Token = 
     { AccessToken: string
-      User: User }
+      User: InstagramUser }
     static member FromJson(_:Token) = json {
             let! t = Json.read "access_token"
             let! u = Json.read "user"

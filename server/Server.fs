@@ -1,6 +1,8 @@
 ﻿open BearFriday.App
 open Microsoft.Azure
 open Suave
+open Suave.Logging
+open Suave.Operators
 open System
 open System.Net
 
@@ -22,5 +24,7 @@ let main argv =
     
     printfn "%s\n%A\n%s" "App Configuration:" appConfig "Starting Suave..."
 
-    createApp appConfig |> startWebServer suaveConfig
+    let logger = Targets.create Info [| "Suave" |]
+    let app = createApp appConfig >=> Filters.logWithLevelStructured Info logger Filters.logFormatStructured
+    app |> startWebServer suaveConfig
     0

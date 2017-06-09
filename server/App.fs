@@ -50,28 +50,41 @@ let storeUserId id =
         | Some s -> s.set "instagram-id" id
     )
 
-let completeOAuthAndStartSession clientId clientSecret redirectUri code =
-    context (fun ctx ->
-        let wp = 
-            Instagram.requestAccessToken clientId clientSecret redirectUri code
-            |> Async.RunSynchronously
-            |> Result.bind (fun t -> 
-                storeUserId t.AccessToken
-                >=> Writers.setUserData "token" t
-                |> Result.Ok) 
-        
-        match wp with
-        | Ok x -> x
-        | Error e -> ServerErrors.INTERNAL_ERROR e.Message
-    )
+let completeOAuthRequest config =
+    Instagram.requestAccessToken config.InstagramClientId config.InstagramClientSecret config.InstagramRedirectUri
+
+let storeTokensInAzure (storage: StorageClient) (result: Async<Result<Instagram.Token,exn>>) = async {
+        let! r = result
+        match r with
+        | Ok t ->
+            return storage.InsertOrReplace 
+                { defaultUser with
+                    Id = t.User.Id 
+                    Username = t.User.Username
+                    AccessToken = t.AccessToken }
+            |> Result.bind (fun o -> Ok t.User.Id)
+        | Error ex -> return Error ex
+    }
+
+let handleAuthResult (r: Async<Result<string,exn>>) = 
+    fun ctx -> async {
+        let! result = r
+        match result with
+        | Ok id -> return! storeUserId id ctx >>= Redirection.redirect "/curate"
+        | Error ex -> return! ServerErrors.INTERNAL_ERROR ex.Message ctx
+    }
+
 
 let createApp config = 
     let showBearFriday = enableFeature config.EnableFriday >=> todayIsFriday
     let showSquirrelTuesday = enableFeature config.EnableTuesday >=> todayIsTuesday
     let loginUrl = Instagram.buildAuthUrl config.InstagramClientId config.InstagramRedirectUri
     let storage = StorageClient (config.AzureConnection, config.AzureTable)
-    let completeOAuth = completeOAuthAndStartSession config.InstagramClientId config.InstagramClientSecret config.InstagramRedirectUri
-    
+    let completeOAuth = 
+        completeOAuthRequest config // todo: verify allowed users
+        >> storeTokensInAzure storage
+        >> handleAuthResult
+
     statefulForSession >=> choose [
         path "/" >=> choose [
             showBearFriday >=> context (fun c -> Successful.OK "it's friday!")
@@ -83,10 +96,7 @@ let createApp config =
         path "/oauth" >=> context (fun ctx ->
             let req = ctx.request
             match (req.queryParam "code", req.queryParam "error") with
-            | (Choice1Of2 code, _) -> 
-                completeOAuth code
-                >=> Authentication.authenticated Session false
-                >=> Redirection.redirect "/curate"
+            | (Choice1Of2 code, _) -> completeOAuth code
             | (_, Choice1Of2 x) -> RequestErrors.BAD_REQUEST x
             | _ -> RequestErrors.BAD_REQUEST "Invalid parameters."
         )

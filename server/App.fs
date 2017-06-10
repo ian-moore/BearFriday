@@ -76,6 +76,12 @@ let handleAuthResult (r: Async<Result<string,exn>>) =
         | Error ex -> return! ServerErrors.INTERNAL_ERROR ex.Message ctx
     }
 
+let verifyAuth protectedPart = 
+    Authentication.authenticate CookieLife.Session false
+        (fun () -> Redirection.redirect "/login" |> Choice2Of2)
+        (fun _ ->  Redirection.redirect "/login" |> Choice2Of2)
+        protectedPart
+
 
 let createApp config = 
     let showBearFriday = enableFeature config.EnableFriday >=> todayIsFriday
@@ -91,8 +97,7 @@ let createApp config =
         path "/" >=> choose [
             showBearFriday >=> context (fun c -> Successful.OK "it's friday!")
             showSquirrelTuesday >=> context (fun c -> Successful.OK "it's tuesday!")
-            //Files.file "views/friday.html"
-            Successful.OK "it's a normal day"
+            Files.file "splash.html"
         ]
         path "/login" >=> Redirection.redirect loginUrl
         path "/oauth" >=> context (fun ctx ->
@@ -102,7 +107,11 @@ let createApp config =
             | (_, Choice1Of2 x) -> RequestErrors.BAD_REQUEST x
             | _ -> RequestErrors.BAD_REQUEST "Invalid parameters."
         )
-        path "/curate" >=> Successful.OK "curator page"
+        showBearFriday >=> choose [
+            path "/api/bears" >=> Successful.OK "bear api call"
+            path "/api/curate" >=> Successful.OK "bear api call"
+        ]
+        verifyAuth <| path "/curate" >=> Successful.OK "curator page"
         pathRegex "(.*)\.(css|png|gif|js|map|ico)" >=> Files.browseHome
         RequestErrors.NOT_FOUND "Not found"
     ]

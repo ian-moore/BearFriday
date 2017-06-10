@@ -57,7 +57,7 @@ let storeTokensInAzure (storage: StorageClient) (result: Async<Result<Instagram.
         let! r = result
         match r with
         | Ok t ->
-            return storage.InsertOrReplace 
+            return storage.InsertUser
                 { defaultUser with
                     Id = t.User.Id 
                     Username = t.User.Username
@@ -70,7 +70,9 @@ let handleAuthResult (r: Async<Result<string,exn>>) =
     fun ctx -> async {
         let! result = r
         match result with
-        | Ok id -> return! storeUserId id ctx >>= Redirection.redirect "/curate"
+        | Ok id -> 
+            return! storeUserId id ctx 
+            >>= (Authentication.authenticated Session false >=> Redirection.redirect "/curate")
         | Error ex -> return! ServerErrors.INTERNAL_ERROR ex.Message ctx
     }
 

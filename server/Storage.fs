@@ -22,7 +22,7 @@ type StorageClient (connectionString, tableName) =
     let inMyTable = inTable tc tableName
     let fromMyTable q = fromTable tc tableName q
 
-    member this.InsertOrReplace x =
+    member this.InsertUser (x: User) =
         try
             InsertOrReplace x |> inMyTable |> Ok
         with

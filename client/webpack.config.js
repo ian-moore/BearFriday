@@ -1,54 +1,37 @@
 var path = require("path");
-var webpack = require("webpack");
-
-function resolve(filePath) {
-  return path.join(__dirname, filePath)
-}
-
-var babelOptions = {
-  presets: [["es2015", { "modules": false }]],
-  plugins: ["transform-runtime"]
-};
-
-var isProduction = process.argv.indexOf("-p") >= 0;
-console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
 
 module.exports = {
-  devtool: "source-map",
-  entry: resolve('./BearFriday.Client.fsproj'),
-  output: {
-    filename: 'bundle.js',
-    path: resolve('./public'),
-  },
-  resolve: {
-    modules: [
-      "node_modules", resolve("./node_modules/")
+  entry: {
+    app: [
+      './src/Friday.js'
     ]
   },
-  devServer: {
-    contentBase: resolve('./public'),
-    port: 8080
+
+  output: {
+    path: path.resolve(__dirname + '/dist'),
+    filename: '[name].js',
   },
+
   module: {
     rules: [
       {
-        test: /\.fs(x|proj)?$/,
-        use: {
-          loader: "fable-loader",
-          options: {
-            babel: babelOptions,
-            define: isProduction ? [] : ["DEBUG"]
-          }
-        }
+        test:    /\.html$/,
+        exclude: /node_modules/,
+        loader:  'file-loader?name=[name].[ext]',
       },
       {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: babelOptions
-        },
+        test:    /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        loader:  'elm-webpack-loader?verbose=true&warn=true',
       }
-    ]
-  }
+    ],
+
+    noParse: /\.elm$/,
+  },
+
+  devServer: {
+    inline: true,
+    stats: { colors: true },
+  },
+
 };

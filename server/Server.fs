@@ -4,6 +4,7 @@ open Suave
 open Suave.Logging
 open Suave.Operators
 open System
+open System.IO
 open System.Net
 
 let appConfig = 
@@ -20,7 +21,8 @@ let main argv =
     let port = Array.tryHead argv |> Option.defaultValue "8080" |> Sockets.Port.Parse
     let suaveConfig = 
         { defaultConfig with 
-            bindings = [HttpBinding.create HTTP IPAddress.Loopback port] }
+            bindings = [HttpBinding.create HTTP IPAddress.Loopback port]
+            homeFolder = Some (Path.GetFullPath ".") }
     
     printfn "%s\n%A\n%s" "App Configuration:" appConfig "Starting Suave..."
 

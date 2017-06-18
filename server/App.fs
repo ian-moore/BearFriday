@@ -111,7 +111,9 @@ let createApp config =
             path "/api/bears" >=> Successful.OK "bear api call"
             path "/api/curate" >=> Successful.OK "bear api call"
         ]
-        verifyAuth <| path "/curate" >=> Successful.OK "curator page"
         pathRegex "(.*)\.(css|png|gif|js|map|ico)" >=> Files.browseHome
+        verifyAuth <| choose [
+            path "/curate" >=> Successful.OK "curator page"
+        ]
         RequestErrors.NOT_FOUND "Not found"
     ]

@@ -30,7 +30,7 @@ Target "BuildClient" (fun _ ->
             Command = Custom "build" }
     )
 
-    CopyDir (buildDir </> "public") "./client/dist" allFiles
+    CopyDir buildDir "./client/dist" allFiles
 )
 
 Target "BuildServer" (fun _ ->
@@ -39,7 +39,16 @@ Target "BuildServer" (fun _ ->
             WorkingDir = "./server" }
     )
 
-    CopyDir buildDir "./server/bin/Debug/net462" allFiles
+    CopyDir buildDir "./server/bin/Release/net462" allFiles
+)
+
+Target "Run" (fun _ ->
+    log (__SOURCE_DIRECTORY__ </> buildDir)
+    let result = ExecProcess (fun info ->
+        info.FileName <- (__SOURCE_DIRECTORY__ </> buildDir </> "BearFriday.Server.exe")
+        info.WorkingDirectory <- (__SOURCE_DIRECTORY__ </> buildDir)) (TimeSpan.FromMinutes 10.0)
+
+    if result <> 0 then failwithf "Server returned with a non-zero exit code"
 )
 
 Target "Default" DoNothing

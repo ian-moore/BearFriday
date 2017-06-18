@@ -1,4 +1,5 @@
-var path = require("path");
+var path = require("path"),
+  CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: {
@@ -15,11 +16,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test:    /\.html$/,
-        exclude: /node_modules/,
-        loader:  'file-loader?name=[name].[ext]',
-      },
-      {
         test:    /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
         loader:  'elm-webpack-loader?verbose=true&warn=true',
@@ -28,6 +24,12 @@ module.exports = {
 
     noParse: /\.elm$/,
   },
+
+  plugins: [
+    new CopyWebpackPlugin([
+      { context: 'public/', from: '**/*', }
+    ])    
+  ],
 
   devServer: {
     inline: true,

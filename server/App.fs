@@ -96,6 +96,7 @@ let createApp config =
     let showSquirrelTuesday = enableFeature config.EnableTuesday >=> todayIsTuesday
     let loginUrl = Instagram.buildAuthUrl config.InstagramClientId config.InstagramRedirectUri
     let storage = StorageClient (config.AzureConnection, config.AzureTable)
+    // todo: refactor to use Result.bind
     let completeOAuth = 
         completeOAuthRequest config // todo: verify allowed users
         >> storeTokensInAzure storage

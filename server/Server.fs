@@ -26,7 +26,7 @@ let main argv =
     
     printfn "%s\n%A\n%s" "App Configuration:" appConfig "Starting Suave..."
 
-    let logger = Targets.create Info [| "Suave" |]
+    let logger = Targets.create Info [| "Suave"; "BearFriday" |]
     let app = createApp appConfig >=> Filters.logWithLevelStructured Info logger Filters.logFormatStructured
     app |> startWebServer suaveConfig
     0

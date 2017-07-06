@@ -4,9 +4,13 @@ open BearFriday.Storage
 open Suave
 open Suave.Cookie
 open Suave.Filters
+open Suave.Logging
+open Suave.Logging.Message
 open Suave.Operators
 open Suave.State.CookieStateStore
 open System
+
+let logger = Log.create "BearFriday.App"
 
 type AppConfiguration = 
     { EnableFriday: bool
@@ -63,7 +67,9 @@ let storeTokensInAzure (storage: StorageClient) (result: Async<Result<Instagram.
                     Username = t.User.Username
                     AccessToken = t.AccessToken }
             |> Result.bind (fun o -> Ok t.User.Id)
-        | Error ex -> return Error ex
+        | Result.Error ex -> 
+            logger.error (eventX "Instagram token error." >> addExn ex)
+            return Result.Error ex
     }
 
 let handleAuthResult (r: Async<Result<string,exn>>) = 
@@ -73,7 +79,9 @@ let handleAuthResult (r: Async<Result<string,exn>>) =
         | Ok id -> 
             return! storeUserId id ctx 
             >>= (Authentication.authenticated Session false >=> Redirection.redirect "/curate")
-        | Error ex -> return! ServerErrors.INTERNAL_ERROR ex.Message ctx
+        | Result.Error ex -> 
+            logger.error (eventX "User id error." >> addExn ex)
+            return! ServerErrors.INTERNAL_ERROR ex.Message ctx
     }
 
 let verifyAuth protectedPart = 

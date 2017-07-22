@@ -1,4 +1,4 @@
-module BearFriday.Server.App
+module BearFriday.Server.Program
 
 open System
 open System.IO
@@ -11,7 +11,7 @@ open BearFriday.Server
 [<EntryPoint>]
 let main argv =
     let contentRoot = Directory.GetCurrentDirectory()
-    let webRoot = Path.Combine(contentRoot, "WebRoot")
+    let webRoot = Path.Combine(contentRoot, "wwwroot")
 
     WebHostBuilder()
         .UseKestrel()

@@ -1,13 +1,12 @@
 namespace BearFriday.Server
 
-open BearFriday.Server.Handlers
+open BearFriday.Server.App
 open Giraffe.Middleware
 open Giraffe.Razor.Middleware
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.Configuration.UserSecrets
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
 open System
@@ -19,19 +18,20 @@ type Startup(env: IHostingEnvironment) =
         let configBuilder = 
             ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appSettings.json")
+                .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
 
-        if env.IsDevelopment()
-        then configBuilder.AddUserSecrets<Startup>() |> ignore
-
         let config = configBuilder.Build()
+        let appSettings = 
+            { EnableFriday = config.["EnableFriday"] |> Convert.ToBoolean; 
+              AzureConnection = config.["AzureConnectionString"]; 
+              AzureTableName = config.["AzureTableName"] }
 
         logger.AddConsole(LogLevel.Error).AddDebug() |> ignore
         
         app.UseGiraffeErrorHandler errorHandler
         app.UseStaticFiles() |> ignore
-        app.UseGiraffe webApp
+        createApp appSettings |> app.UseGiraffe
 
     member __.ConfigureServices(services: IServiceCollection) =
         let sp = services.BuildServiceProvider()

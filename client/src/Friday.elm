@@ -1,6 +1,6 @@
 import Html exposing (..)
 
-main =
+friday =
   Html.program
     { init = init
     , view = view

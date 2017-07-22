@@ -4,6 +4,16 @@ open FSharp.Azure.Storage.Table
 open Microsoft.WindowsAzure.Storage
 open Microsoft.WindowsAzure.Storage.Table
 
+type BearPhoto =
+    { [<PartitionKey>] Object: string
+      [<RowKey>] InstagramId: string 
+      DateAdded: System.DateTime }
+
+let defaultPhoto =
+    { Object = "photo"
+      InstagramId = ""
+      DateAdded = System.DateTime.MinValue }
+
 type User = 
     { [<PartitionKey>] Object: string
       [<RowKey>] Id: string

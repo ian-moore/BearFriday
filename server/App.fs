@@ -90,9 +90,8 @@ let verifyAuth protectedPart =
         (fun _ ->  Redirection.redirect "/login" |> Choice2Of2)
         protectedPart
 
-
 let createApp config = 
-    let showBearFriday = enableFeature config.EnableFriday >=> todayIsFriday
+    let showBearFriday = enableFeature config.EnableFriday// >=> todayIsFriday
     let showSquirrelTuesday = enableFeature config.EnableTuesday >=> todayIsTuesday
     let loginUrl = Instagram.buildAuthUrl config.InstagramClientId config.InstagramRedirectUri
     let storage = StorageClient (config.AzureConnection, config.AzureTable)
@@ -104,7 +103,7 @@ let createApp config =
 
     statefulForSession >=> choose [
         path "/" >=> choose [
-            showBearFriday >=> context (fun c -> Successful.OK "it's friday!")
+            showBearFriday >=> Files.file "friday.html"
             showSquirrelTuesday >=> context (fun c -> Successful.OK "it's tuesday!")
             Files.file "splash.html"
         ]

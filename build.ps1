@@ -1,5 +1,5 @@
 param (
-    [switch]$Release
+    [switch]$Release,
     [switch]$Run
 )
 
@@ -43,5 +43,6 @@ if(-not(Test-Path -Path $buildDir)) {
 Copy-Item "$serverDir\bin\$configuration\netcoreapp1.1\*" $buildDir -Recurse
 
 if ($Run) {
-    dotnet "$buildDir\BearFriday.Server.dll"
+    Set-Location $buildDir
+    dotnet 'BearFriday.Server.dll'
 }

@@ -1,7 +1,7 @@
 
 # BearFriday
 
-F# Suave web app
+F# ASP.NET Core web app using [Giraffe](https://github.com/dustinmoris/Giraffe)
 
 Dev requirements:
 

@@ -32,6 +32,7 @@
     <Watch Include="**\*.cshtml" Exclude="bin\**\*" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Instagram.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Startup.fs" />
     <Compile Include="Program.fs" />

@@ -25,7 +25,10 @@ type Startup(env: IHostingEnvironment) =
         let appSettings = 
             { EnableFriday = config.["EnableFriday"] |> Convert.ToBoolean; 
               AzureConnection = config.["AzureConnectionString"]; 
-              AzureTableName = config.["AzureTableName"] }
+              AzureTableName = config.["AzureTableName"]
+              InstagramClientId = config.["InstagramClientId"] 
+              InstagramClientSecret = config.["InstagramClientSecret"]
+              InstagramRedirectUri = config.["InstagramRedirectUri"] }
 
         logger.AddConsole(LogLevel.Error).AddDebug() |> ignore
         

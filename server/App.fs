@@ -64,11 +64,12 @@ let handleAsyncResult okFunc errorFunc (ar: Async<Result<'a,'b>>) =
         | Error ex -> return! errorFunc ex ctx
     }
 
-
+let errorResponse (ex: Exception) (ctx: HttpContext) =
+    ctx |> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
 
 let errorHandler (ex: Exception) (logger: ILogger) (ctx: HttpContext) =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
-    ctx |> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
+    errorResponse ex ctx
 
 let createApp config = 
     let showBearFriday = choose [ todayIsFriday ; enableFeature config.EnableFriday ] 
@@ -84,12 +85,11 @@ let createApp config =
         route "/login" >=> redirectTo false loginUrl
         route "/oauth" >=> warbler (fun ctx -> 
             match (ctx.GetQueryStringValue "code", ctx.GetQueryStringValue "error") with
-            | Ok c, _ -> 
-                //finish oauth, store tokens, then redirect 
+            | Ok c, _ -> // finish oauth, store tokens, then redirect 
                 getToken c
                 |> AsyncResult.bind (storeToken storage)
                 |> AsyncResult.map signIn
-                |> handleAsyncResult id (fun e -> setStatusCode 500)
+                |> handleAsyncResult id errorResponse
             | Error _, Ok err -> setStatusCode 400
             | _, _ -> setStatusCode 400
         )

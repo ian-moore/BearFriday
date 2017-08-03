@@ -10,7 +10,7 @@ type User =
       Username: string
       AccessToken: string }
 
-type private UserEntity(u: User) as this =
+type UserEntity(u: User) as this =
     inherit TableEntity()
     let e = (this :> TableEntity)
     do
@@ -34,11 +34,14 @@ type StorageClient(connectionString: string, tableName: string) =
     let azureClient = account.CreateCloudTableClient ()
     let table = azureClient.GetTableReference tableName
     
+    let (|SuccessCode|_|) v = if v >= 200 && v < 300 then Some v else None
+
     member __.StoreUser u = async {
+            let! c = table.CreateIfNotExistsAsync () |> Async.AwaitTask
             let op = UserEntity u |> TableOperation.InsertOrReplace
             let! r = table.ExecuteAsync op |> Async.AwaitTask
             match r.HttpStatusCode with
-            | 200 -> return Ok (u.Id, u.Username)
+            | SuccessCode v -> return Ok (u.Id, u.Username)
             | _ -> return Error (exnf "StoreUser: InsertOrReplace failed with HTTP %i." r.HttpStatusCode)
         }
 

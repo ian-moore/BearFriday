@@ -25,6 +25,7 @@
     <PackageReference Include="Giraffe" Version="0.1.0-*" />
     <PackageReference Include="Giraffe.Razor" Version="0.1.0-*" />
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
+    <PackageReference Include="WindowsAzure.Storage" Version="8.2.1" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="1.0.0" />
@@ -33,6 +34,8 @@
     <Watch Include="**\*.cshtml" Exclude="bin\**\*" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Utility.fs" />
+    <Compile Include="Storage.fs" />
     <Compile Include="Instagram.fs" />
     <Compile Include="App.fs" />
     <Compile Include="Startup.fs" />

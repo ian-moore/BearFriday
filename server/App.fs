@@ -95,6 +95,14 @@ let createApp config : HttpHandler =
             | Error _, Ok err -> setStatusCode 400
             | _, _ -> setStatusCode 400
         )
+        subRoute "/api" 
+            (choose [
+                route "/bears" >=> text "show bear media."
+                route "/curate" >=> requireLogin >=> choose [
+                    POST >=> text "add new bear media."
+                    DELETE >=> text "delete a bear media."
+                ]
+            ])
         route "/curate" >=> requireLogin >=> text "curate page."
         route "/logout" >=> requireLogin >=> signOff authScheme >=> redirectTo false "/"
         setStatusCode 404 >=> text "Not Found" 

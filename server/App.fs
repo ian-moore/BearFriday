@@ -56,6 +56,15 @@ let signIn (userId, username) =
         return Some ctx
     }
 
+let addBearMedia =
+    fun (ctx: HttpContext) -> async {
+        let! body = ctx.ReadBodyFromRequest () 
+        let parsedId = Instagram.getIdFromShareUrl body
+        match parsedId with
+        | Some id -> return text "add bears" ctx
+        | None -> return ctx |> (setStatusCode 400 >=> text "Invalid Instagram URL.")
+    }
+
 let handleAsyncResult okFunc errorFunc ar =
     fun (ctx: HttpContext) -> async {
         let! r = ar

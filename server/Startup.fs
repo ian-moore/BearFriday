@@ -13,6 +13,16 @@ open System
 open System.IO
 
 type Startup(env: IHostingEnvironment) =
+    let cookieAuth =
+        CookieAuthenticationOptions(
+            AuthenticationScheme = authScheme,
+            AutomaticAuthenticate = true,
+            AutomaticChallenge = false,
+            CookieHttpOnly = true,
+            CookieSecure = CookieSecurePolicy.SameAsRequest,
+            SlidingExpiration = true,
+            ExpireTimeSpan = TimeSpan.FromDays 30.0
+        )
 
     member __.Configure(app: IApplicationBuilder) (env: IHostingEnvironment) (logger: ILoggerFactory) =
         let configBuilder = 
@@ -33,6 +43,7 @@ type Startup(env: IHostingEnvironment) =
         logger.AddConsole(LogLevel.Error).AddDebug() |> ignore
         
         app.UseGiraffeErrorHandler errorHandler
+        app.UseCookieAuthentication cookieAuth |> ignore
         app.UseStaticFiles() |> ignore
         createApp appSettings |> app.UseGiraffe
 
@@ -41,3 +52,4 @@ type Startup(env: IHostingEnvironment) =
         let env = sp.GetService<IHostingEnvironment>()
         let viewsFolderPath = Path.Combine(env.ContentRootPath, "Views")
         services.AddRazorEngine viewsFolderPath |> ignore
+        

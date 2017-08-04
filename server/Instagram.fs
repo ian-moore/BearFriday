@@ -7,13 +7,13 @@ open System.Text.RegularExpressions
 type InstagramUser =
     { Id: string
       Username: string
-      ProfilePicture: string
-      FullName: string
+      [<JsonProperty("profile_picture")>] ProfilePicture: string
+      [<JsonProperty("full_name")>] FullName: string
       Bio: string
       Website: string }
 
 type Token = 
-    { AccessToken: string
+    { [<JsonProperty("access_token")>] AccessToken: string
       User: InstagramUser }
     
 let buildAuthUrl =

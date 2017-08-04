@@ -56,7 +56,7 @@ let signIn (userId, username) =
         return Some ctx
     }
 
-let handleAsyncResult okFunc errorFunc (ar: Async<Result<'a,'b>>) =
+let handleAsyncResult okFunc errorFunc ar =
     fun (ctx: HttpContext) -> async {
         let! r = ar
         match r with 
@@ -64,23 +64,24 @@ let handleAsyncResult okFunc errorFunc (ar: Async<Result<'a,'b>>) =
         | Error ex -> return! errorFunc ex ctx
     }
 
-let errorResponse (ex: Exception) (ctx: HttpContext) =
+let errorResponse (ex: Exception) ctx =
     ctx |> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
 
-let errorHandler (ex: Exception) (logger: ILogger) (ctx: HttpContext) =
+let errorHandler (ex: Exception) (logger: ILogger) ctx =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
     errorResponse ex ctx
 
-let createApp config = 
+let createApp config : HttpHandler = 
     let showBearFriday = choose [ todayIsFriday ; enableFeature config.EnableFriday ] 
     let loginUrl = Instagram.buildAuthUrl config.InstagramClientId config.InstagramRedirectUri
     let getToken = requestInstagramToken config
     let storage = StorageClient (config.AzureConnectionString, config.AzureTableName)
+    let requireLogin = requiresAuthentication (challenge authScheme)
     
     choose [
         route "/" >=> choose [
             showBearFriday >=> text "it's friday!"
-            text "it's not friday yet"
+            text "it's not friday yet."
         ]
         route "/login" >=> redirectTo false loginUrl
         route "/oauth" >=> warbler (fun ctx -> 
@@ -90,8 +91,11 @@ let createApp config =
                 |> AsyncResult.bind (storeToken storage)
                 |> AsyncResult.map signIn
                 |> handleAsyncResult id errorResponse
+                >=> redirectTo false "/curate"
             | Error _, Ok err -> setStatusCode 400
             | _, _ -> setStatusCode 400
         )
+        route "/curate" >=> requireLogin >=> text "curate page."
+        route "/logout" >=> requireLogin >=> signOff authScheme >=> redirectTo false "/"
         setStatusCode 404 >=> text "Not Found" 
-    ] : HttpHandler
+    ]

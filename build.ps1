@@ -33,6 +33,7 @@ dotnet build $serverProj
 
 Set-Location $clientDir
 yarn install
+yarn build
 Set-Location '..'
 
 # copy output to build dir
@@ -40,7 +41,10 @@ if(-not(Test-Path -Path $buildDir)) {
     New-Item -ItemType directory -Path $buildDir
 }
 Copy-Item "$serverDir\bin\$configuration\netcoreapp1.1\*" $buildDir -Recurse
-@('css', 'js', 'img') | % { Copy-Item "$clientDir\$_" "$buildDir\wwwroot\$_" -Recurse  }
+@('css', 'dist', 'img') | % { 
+    $outputDir = if ($_ -eq 'dist') { 'js' } else { $_ }
+    Copy-Item "$clientDir\$_" "$buildDir\wwwroot\$outputDir" -Recurse  
+}
 
 if ($Run) {
     Set-Location $buildDir

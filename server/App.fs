@@ -3,6 +3,7 @@ module BearFriday.Server.App
 open BearFriday.Server.Storage
 open Giraffe
 open Giraffe.HttpHandlers
+open Giraffe.Razor.HttpHandlers
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 open System
@@ -101,8 +102,8 @@ let createApp config : HttpHandler =
     
     choose [
         route "/" >=> choose [
-            showBearFriday >=> text "it's friday!"
-            text "it's not friday yet."
+            showBearFriday >=> razorHtmlView "Friday" ()
+            razorHtmlView "Splash" ()
         ]
         route "/login" >=> redirectTo false loginUrl
         route "/oauth" >=> warbler (fun ctx -> 

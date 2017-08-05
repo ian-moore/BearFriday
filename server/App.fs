@@ -56,21 +56,33 @@ let signIn (userId, username) =
         return Some ctx
     }
 
-let addBearMedia =
-    fun (ctx: HttpContext) -> async {
-        let! body = ctx.ReadBodyFromRequest () 
-        let parsedId = Instagram.getIdFromShareUrl body
-        match parsedId with
-        | Some id -> return text "add bears" ctx
-        | None -> return ctx |> (setStatusCode 400 >=> text "Invalid Instagram URL.")
-    }
-
 let handleAsyncResult okFunc errorFunc ar =
     fun (ctx: HttpContext) -> async {
         let! r = ar
         match r with 
         | Ok v -> return! okFunc v ctx
         | Error ex -> return! errorFunc ex ctx
+    }
+
+let addBearMedia (storage: StorageClient) =
+    let igError = setStatusCode 400 >=> text "Invalid Instagram URL."
+    fun (ctx: HttpContext) -> async {
+        let! body = ctx.ReadBodyFromRequest () 
+        let parsedId = Instagram.getIdFromShareUrl body
+        printfn "Claims: %A" (ctx.User.FindFirst ClaimTypes.NameIdentifier)
+        match parsedId with
+        | Some id -> 
+            let handler = 
+                { Type = Instagram
+                  ExternalId = id
+                  AddedBy = ""
+                  AddedOn = System.DateTimeOffset.UtcNow }
+                |> storage.StoreMedia
+                |> handleAsyncResult
+                    (fun _ -> setStatusCode 204)
+                    (fun ex -> setStatusCode 500 >=> text ex.Message)
+            return! handler ctx
+        | None -> return! igError ctx
     }
 
 let errorResponse (ex: Exception) ctx =
@@ -108,7 +120,7 @@ let createApp config : HttpHandler =
             (choose [
                 route "/bears" >=> text "show bear media."
                 route "/curate" >=> requireLogin >=> choose [
-                    POST >=> text "add new bear media."
+                    POST >=> (addBearMedia storage)
                     DELETE >=> text "delete a bear media."
                 ]
             ])

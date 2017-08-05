@@ -1,0 +1,25 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.splash {
+    margin: auto;
+    width: 800px;
+    max-width: 80%;
+    text-align: center;
+}
+
+.splash .splash-logo {
+    width: 120px;
+    height: 120px;
+    display: inline-block;
+    background-image: url(../img/bear_emoji.png);
+}
+
+.splash p {
+    font-weight: bold;
+}
+
+.splash .credits {
+    font-size: x-small;
+}

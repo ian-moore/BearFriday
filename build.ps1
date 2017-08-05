@@ -40,6 +40,7 @@ if(-not(Test-Path -Path $buildDir)) {
     New-Item -ItemType directory -Path $buildDir
 }
 Copy-Item "$serverDir\bin\$configuration\netcoreapp1.1\*" $buildDir -Recurse
+@('css', 'js', 'img') | % { Copy-Item "$clientDir\$_" "$buildDir\wwwroot\$_" -Recurse  }
 
 if ($Run) {
     Set-Location $buildDir

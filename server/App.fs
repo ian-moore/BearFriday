@@ -57,6 +57,11 @@ let signIn (userId, username) =
         return Some ctx
     }
 
+let getUserFromClaims (ctx: HttpContext) =
+    let userId = ctx.User.FindFirst ClaimTypes.NameIdentifier
+    let username = ctx.User.FindFirst ClaimTypes.Name
+    userId.Value, username.Value
+
 let handleAsyncResult okFunc errorFunc ar =
     fun (ctx: HttpContext) -> async {
         let! r = ar
@@ -65,18 +70,23 @@ let handleAsyncResult okFunc errorFunc ar =
         | Error ex -> return! errorFunc ex ctx
     }
 
+[<CLIMutable>]
+type NewMedia =
+    { IsFormSubmission: bool
+      InstagramUrl: string }
+
 let addBearMedia (storage: StorageClient) =
     let igError = setStatusCode 400 >=> text "Invalid Instagram URL."
     fun (ctx: HttpContext) -> async {
-        let! body = ctx.ReadBodyFromRequest () 
-        let parsedId = Instagram.getIdFromShareUrl body
-        printfn "Claims: %A" (ctx.User.FindFirst ClaimTypes.NameIdentifier)
+        let! media = ctx.BindForm<NewMedia> ()
+        let parsedId = Instagram.getIdFromShareUrl media.InstagramUrl
+        let user = getUserFromClaims ctx
         match parsedId with
         | Some id -> 
             let handler = 
                 { Type = Instagram
                   ExternalId = id
-                  AddedBy = ""
+                  AddedBy = (fst user)
                   AddedOn = System.DateTimeOffset.UtcNow }
                 |> storage.StoreMedia
                 |> handleAsyncResult
@@ -125,7 +135,7 @@ let createApp config : HttpHandler =
                     DELETE >=> text "delete a bear media."
                 ]
             ])
-        route "/curate" >=> requireLogin >=> text "curate page."
+        route "/curate" >=> requireLogin >=> razorHtmlView "Curate" ()
         route "/logout" >=> requireLogin >=> signOff authScheme >=> redirectTo false "/"
         setStatusCode 404 >=> text "Not Found" 
     ]

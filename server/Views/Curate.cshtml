@@ -9,7 +9,16 @@
     <link rel="stylesheet" href="/css/styles.css" />
 </head>
 <body>
-    <section class="curate">
+    <section class="curate-form">
+        <h1>Add Bears</h1>
+        <form action="/api/curate" method="post">
+            <input type="hidden" name="isFormSubmission" value="true" />
+            <div class="curate-form-row">
+                <label>Instagram URL:</label>
+                <input type="text" name="instagramUrl" />
+                <button type="submit">Add</button>
+            </div>
+        </form>
     </section>
 </body>
 </html>

@@ -119,7 +119,7 @@ let createApp config : HttpHandler =
         )
         subRoute "/api" 
             (choose [
-                route "/bears" >=> text "show bear media."
+                route "/bears" >=> json ()
                 route "/curate" >=> requireLogin >=> choose [
                     POST >=> (addBearMedia storage)
                     DELETE >=> text "delete a bear media."

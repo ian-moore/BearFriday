@@ -83,7 +83,7 @@ let addBearMedia (storage: StorageClient) =
         let user = getUserFromClaims ctx
         match parsedId with
         | Some id -> 
-            let handler = 
+            return!
                 { Type = Instagram
                   ExternalId = id
                   AddedBy = (fst user)
@@ -92,14 +92,14 @@ let addBearMedia (storage: StorageClient) =
                 |> handleAsyncResult
                     (fun _ -> setStatusCode 204)
                     (fun ex -> setStatusCode 500 >=> text ex.Message)
-            return! handler ctx
+                |> (fun f -> f ctx)
         | None -> return! igError ctx
     }
 
-let errorResponse (ex: Exception) ctx =
+let errorResponse (ex: exn) ctx =
     ctx |> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
 
-let errorHandler (ex: Exception) (logger: ILogger) ctx =
+let errorHandler (ex: exn) (logger: ILogger) ctx =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
     errorResponse ex ctx
 

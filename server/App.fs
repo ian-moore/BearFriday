@@ -8,6 +8,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 open System
 open System.Security.Claims
+open System.Threading.Tasks
 
 type AppSettings = 
     { EnableFriday: bool
@@ -21,17 +22,19 @@ let currentDayOfWeek () =
     let d = TimeSpan (-5, 0, 0) |> DateTimeOffset.UtcNow.ToOffset
     d.DayOfWeek
 
-let dayIsFriday getDay ctx = async {
+let dayIsFriday getDay = 
+    fun (next: HttpFunc) (ctx: HttpContext) -> task {
         match getDay () with
-        | DayOfWeek.Friday -> return Some ctx
+        | DayOfWeek.Friday -> return! next ctx
         | _ -> return None
     }
     
 let todayIsFriday = dayIsFriday currentDayOfWeek
 
-let enableFeature toggle ctx = async {
+let enableFeature toggle =
+    fun (next: HttpFunc) (ctx: HttpContext) -> task {
         match toggle with
-        | true -> return Some ctx
+        | true -> return! next ctx
         | false -> return None
     }
 
@@ -47,13 +50,13 @@ let storeToken (storage: StorageClient) (token: Instagram.Token) =
 let authScheme = "Cookie"
 
 let signIn (userId, username) =
-    fun (ctx: HttpContext) -> async {
+    fun (next: HttpFunc) (ctx: HttpContext) -> task {
         let issuer = "http://localhost:5000"
         let claims = 
             [ Claim(ClaimTypes.Name, username, ClaimValueTypes.String, issuer)
               Claim(ClaimTypes.NameIdentifier, userId, ClaimValueTypes.String, issuer) ]
         let user = ClaimsIdentity(claims, authScheme) |> ClaimsPrincipal
-        do! ctx.Authentication.SignInAsync(authScheme, user) |> Async.AwaitTask
+        do! ctx.Authentication.SignInAsync(authScheme, user)
         return Some ctx
     }
 
@@ -62,12 +65,14 @@ let getUserFromClaims (ctx: HttpContext) =
     let username = ctx.User.FindFirst ClaimTypes.Name
     userId.Value, username.Value
 
-let handleAsyncResult okFunc errorFunc ar =
-    fun (ctx: HttpContext) -> async {
-        let! r = ar
-        match r with 
-        | Ok v -> return! okFunc v ctx
-        | Error ex -> return! errorFunc ex ctx
+let handleAsyncResult (okFunc: 'a -> HttpHandler) (errorFunc: 'b -> HttpHandler) ar =
+    fun (next: HttpFunc) (ctx: HttpContext) -> task {
+        let! r = ar |> Async.StartAsTask
+        match r with
+        | Ok v -> 
+            return! okFunc v next ctx
+        | Error ex -> 
+            return! errorFunc ex next ctx
     }
 
 [<CLIMutable>]
@@ -77,7 +82,7 @@ type NewMedia =
 
 let addBearMedia (storage: StorageClient) =
     let igError = setStatusCode 400 >=> text "Invalid Instagram URL."
-    fun (ctx: HttpContext) -> async {
+    fun (next: HttpFunc) (ctx: HttpContext) -> task {
         let! media = ctx.BindForm<NewMedia> ()
         let parsedId = Instagram.getIdFromShareUrl media.InstagramUrl
         let user = getUserFromClaims ctx
@@ -90,14 +95,15 @@ let addBearMedia (storage: StorageClient) =
                   AddedOn = System.DateTimeOffset.UtcNow }
                 |> storage.StoreMedia
                 |> handleAsyncResult
-                    (fun _ -> setStatusCode 204)
+                    (fun v -> setStatusCode 204)
                     (fun ex -> setStatusCode 500 >=> text ex.Message)
-                |> (fun f -> f ctx)
-        | None -> return! igError ctx
+                |> (fun f -> f next ctx)
+        | None -> 
+            return! igError next ctx
     }
 
-let errorResponse (ex: exn) ctx =
-    ctx |> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
+let errorResponse (ex: exn) next ctx =
+    (next, ctx) ||> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
 
 let errorHandler (ex: exn) (logger: ILogger) ctx =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
@@ -116,16 +122,24 @@ let createApp config : HttpHandler =
             razorHtmlView "Splash" ()
         ]
         route "/login" >=> redirectTo false loginUrl
-        route "/oauth" >=> warbler (fun ctx -> 
+        route "/oauth" >=> warbler (fun f1 f2 ctx -> 
             match (ctx.GetQueryStringValue "code", ctx.GetQueryStringValue "error") with
             | Ok c, _ -> // finish oauth, store tokens, then redirect 
-                getToken c
-                |> AsyncResult.bind (storeToken storage)
-                |> AsyncResult.map signIn
-                |> handleAsyncResult id errorResponse
-                >=> redirectTo false "/curate"
-            | Error _, Ok err -> setStatusCode 400
-            | _, _ -> setStatusCode 400
+                let x = 
+                    getToken c 
+                    |> AsyncResult.bind (storeToken storage)
+                    |> AsyncResult.map signIn
+                    |> handleAsyncResult id errorResponse
+                    >=> redirectTo false "/curate"
+
+                setStatusCode 500 f2 ctx
+                // getToken c
+                // |> AsyncResult.bind (storeToken storage)
+                // |> AsyncResult.map signIn
+                // |> handleAsyncResult id errorResponse
+                // >=> redirectTo false "/curate"
+            | Error _, Ok err -> setStatusCode 400 f2 ctx
+            | _, _ -> setStatusCode 400 f2 ctx
         )
         subRoute "/api" 
             (choose [

@@ -23,7 +23,7 @@ let currentDayOfWeek () =
     d.DayOfWeek
 
 let dayIsFriday getDay = 
-    fun (next: HttpFunc) (ctx: HttpContext) -> task {
+    fun next ctx -> task {
         match getDay () with
         | DayOfWeek.Friday -> return! next ctx
         | _ -> return None
@@ -32,7 +32,7 @@ let dayIsFriday getDay =
 let todayIsFriday = dayIsFriday currentDayOfWeek
 
 let enableFeature toggle =
-    fun (next: HttpFunc) (ctx: HttpContext) -> task {
+    fun next ctx -> task {
         match toggle with
         | true -> return! next ctx
         | false -> return None
@@ -57,7 +57,7 @@ let signIn (userId, username) =
               Claim(ClaimTypes.NameIdentifier, userId, ClaimValueTypes.String, issuer) ]
         let user = ClaimsIdentity(claims, authScheme) |> ClaimsPrincipal
         do! ctx.Authentication.SignInAsync(authScheme, user)
-        return Some ctx
+        return! next ctx
     }
 
 let getUserFromClaims (ctx: HttpContext) =
@@ -66,7 +66,7 @@ let getUserFromClaims (ctx: HttpContext) =
     userId.Value, username.Value
 
 let handleAsyncResult (okFunc: 'a -> HttpHandler) (errorFunc: 'b -> HttpHandler) ar =
-    fun (next: HttpFunc) (ctx: HttpContext) -> task {
+    fun next ctx -> task {
         let! r = ar |> Async.StartAsTask
         match r with
         | Ok v -> 
@@ -82,7 +82,7 @@ type NewMedia =
 
 let addBearMedia (storage: StorageClient) =
     let igError = setStatusCode 400 >=> text "Invalid Instagram URL."
-    fun (next: HttpFunc) (ctx: HttpContext) -> task {
+    fun next (ctx: HttpContext) -> task {
         let! media = ctx.BindForm<NewMedia> ()
         let parsedId = Instagram.getIdFromShareUrl media.InstagramUrl
         let user = getUserFromClaims ctx
@@ -103,7 +103,7 @@ let addBearMedia (storage: StorageClient) =
     }
 
 let errorResponse (ex: exn) next ctx =
-    (next, ctx) ||> (clearResponse >=> setStatusCode 500 >=> text ex.Message)
+    (clearResponse >=> setStatusCode 500 >=> text ex.Message) next ctx
 
 let errorHandler (ex: exn) (logger: ILogger) ctx =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
@@ -122,24 +122,16 @@ let createApp config : HttpHandler =
             razorHtmlView "Splash" ()
         ]
         route "/login" >=> redirectTo false loginUrl
-        route "/oauth" >=> warbler (fun f1 f2 ctx -> 
+        route "/oauth" >=> warbler (fun (next, ctx) -> 
             match (ctx.GetQueryStringValue "code", ctx.GetQueryStringValue "error") with
             | Ok c, _ -> // finish oauth, store tokens, then redirect 
-                let x = 
-                    getToken c 
-                    |> AsyncResult.bind (storeToken storage)
-                    |> AsyncResult.map signIn
-                    |> handleAsyncResult id errorResponse
-                    >=> redirectTo false "/curate"
-
-                setStatusCode 500 f2 ctx
-                // getToken c
-                // |> AsyncResult.bind (storeToken storage)
-                // |> AsyncResult.map signIn
-                // |> handleAsyncResult id errorResponse
-                // >=> redirectTo false "/curate"
-            | Error _, Ok err -> setStatusCode 400 f2 ctx
-            | _, _ -> setStatusCode 400 f2 ctx
+                getToken c 
+                |> AsyncResult.bind (storeToken storage)
+                |> AsyncResult.map signIn
+                |> handleAsyncResult id errorResponse
+                >=> redirectTo false "/curate"
+            | Error _, Ok err -> setStatusCode 400
+            | _, _ -> setStatusCode 400
         )
         subRoute "/api" 
             (choose [

@@ -49,4 +49,5 @@ Copy-Item "$serverDir\bin\$configuration\netcoreapp1.1\*" $buildDir -Recurse
 if ($Run) {
     Set-Location $buildDir
     dotnet 'BearFriday.Server.dll'
+    Set-Location '..'
 }

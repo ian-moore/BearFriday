@@ -8,6 +8,7 @@ Dev requirements:
 * .NET Core SDK
 * Azure Storage Explorer 
 * Azure Storage Emulator
+* Azure Functions CLI
 
 Needed environment values:
 
@@ -19,3 +20,7 @@ To build and run locally:
 * Create table in local Azure Storage
 * `build` to build
 * `build -run` to run the app
+
+To deploy Azure functions:
+
+* Run `func azure functionapp publish bearfridayfunction` from the `/azurefunctions` directory

@@ -4,7 +4,10 @@ open System
 
 #I @"C:/Users/Ian/AppData/Roaming/npm/node_modules/azure-functions-core-tools/bin/"
 
+#r "Microsoft.Azure.WebJobs.dll"
 #r "Microsoft.Azure.Webjobs.Host.dll"
+
+open Microsoft.Azure.WebJobs
 open Microsoft.Azure.WebJobs.Host
 
 #r "System.Net.Http.dll"
@@ -22,10 +25,53 @@ open Microsoft.Azure.WebJobs.Host
 open System.IO
 open System.Net
 open System.Net.Http
+open System.Text
+open System.Text.RegularExpressions
 open Newtonsoft.Json
 
-let Run(req: HttpRequestMessage, log: TraceWriter) =
+[<CLIMutable>]
+type Media = 
+    { PartitionKey: string
+      RowKey: string
+      ExternalId: string
+      AddedBy: string
+      AddedOn: DateTimeOffset }
+
+let storeMediaInTable (table: IAsyncCollector<Media>) (m: Media) = 
+    table.AddAsync m
+    |> Async.AwaitTask
+
+/// parse instagram id from the share url
+let getIdFromShareUrl url =
+    let m = Regex.Match(url, "https?://instagram.com/p/([\w]+)/")
+    match m.Success with
+    | true -> Some m.Groups.[1].Value
+    | false -> None
+
+
+/// read file stream into string per line
+let readStream (s: Stream) =
+    seq {
+        use sr = new StreamReader(s, Encoding.UTF8)
+        while sr.EndOfStream do
+            yield sr.ReadLine()
+    }
+
+/// main function method
+let Run(req: HttpRequestMessage, inputBlob: Stream, outputTable: IAsyncCollector<Media>, log: TraceWriter) =
+    let storeMedia = storeMediaInTable outputTable
     async {
-        File.ReadAllText("./data.csv") |> log.Info
-        return req.CreateResponse(HttpStatusCode.NoContent)
+        let! inserts = 
+            readStream inputBlob
+            |> Seq.choose getIdFromShareUrl
+            |> Seq.map (fun id -> 
+                { PartitionKey = "media"
+                  RowKey = sprintf "IG-%s" id 
+                  ExternalId = id
+                  AddedBy = "4057131565"
+                  AddedOn = DateTimeOffset.UtcNow }
+                |> storeMedia)
+            |> Async.Parallel
+        
+        return req.CreateResponse(HttpStatusCode.OK, sprintf "Inserted %i objects." inserts.Length)
     } |> Async.RunSynchronously

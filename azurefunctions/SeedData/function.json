@@ -1,5 +1,4 @@
 {
-  "disabled": false,
   "bindings": [
     {
       "authLevel": "function",
@@ -11,6 +10,14 @@
       "name": "res",
       "type": "http",
       "direction": "out"
+    },
+    {
+      "type": "blob",
+      "name": "inputBlob",
+      "path": "seeddata/data.csv",
+      "connection": "AzureWebJobsStorage",
+      "direction": "in"
     }
-  ]
+  ],
+  "disabled": false
 }

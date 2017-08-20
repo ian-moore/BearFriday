@@ -27,7 +27,7 @@ open System.Net
 open System.Net.Http
 open System.Text
 open System.Text.RegularExpressions
-open Newtonsoft.Json
+open System.Threading.Tasks
 
 [<CLIMutable>]
 type Media = 
@@ -37,13 +37,19 @@ type Media =
       AddedBy: string
       AddedOn: DateTimeOffset }
 
+let inline awaitPlainTask (task: Task) = 
+    let continuation (t : Task) =
+        match t.IsFaulted with
+        | true -> raise t.Exception
+        | arg -> ()
+    task.ContinueWith continuation |> Async.AwaitTask
+
 let storeMediaInTable (table: IAsyncCollector<Media>) (m: Media) = 
-    table.AddAsync m
-    |> Async.AwaitTask
+    table.AddAsync m |> awaitPlainTask
 
 /// parse instagram id from the share url
 let getIdFromShareUrl url =
-    let m = Regex.Match(url, "https?://instagram.com/p/([\w]+)/")
+    let m = Regex.Match(url, "https?://instagram.com/p/([\w-_]+)/")
     match m.Success with
     | true -> Some m.Groups.[1].Value
     | false -> None
@@ -53,7 +59,7 @@ let getIdFromShareUrl url =
 let readStream (s: Stream) =
     seq {
         use sr = new StreamReader(s, Encoding.UTF8)
-        while sr.EndOfStream do
+        while (not sr.EndOfStream) do
             yield sr.ReadLine()
     }
 

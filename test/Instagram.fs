@@ -6,7 +6,7 @@ open Xunit
 
 [<Fact>]
 let ``idFromShareUrl returns id`` () =
-    let url = "https://instagram.com/p/BXG5JVpgnh9/"
+    let url = "https://instagram.com/p/BXG5JVp-nh9/"
     let expected = "BXG5JVpgnh9"
     let actual = Instagram.getIdFromShareUrl url
     

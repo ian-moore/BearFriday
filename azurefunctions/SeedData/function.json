@@ -17,6 +17,13 @@
       "path": "seeddata/data.csv",
       "connection": "AzureWebJobsStorage",
       "direction": "in"
+    },
+    {
+      "type": "table",
+      "name": "outputTable",
+      "tableName": "staging",
+      "connection": "bearfridaystorage_STORAGE",
+      "direction": "out"
     }
   ],
   "disabled": false

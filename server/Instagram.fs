@@ -20,7 +20,7 @@ let buildAuthUrl =
     sprintf "https://api.instagram.com/oauth/authorize/?client_id=%s&redirect_uri=%s&response_type=code"
 
 let getIdFromShareUrl url =
-    let m = Regex.Match(url, "https?://instagram.com/p/([\w]+)/")
+    let m = Regex.Match(url, "https?://instagram.com/p/([\w-_]+)/")
     match m.Success with
     | true -> Some m.Groups.[1].Value
     | false -> None

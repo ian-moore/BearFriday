@@ -23,4 +23,4 @@ To build and run locally:
 
 To deploy Azure functions:
 
-* Run `func azure functionapp publish bearfridayfunction` from the `/azurefunctions` directory
+* Run `func azure functionapp publish bearfridayfunctions` from the `/azurefunctions` directory

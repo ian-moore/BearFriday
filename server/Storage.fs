@@ -33,6 +33,13 @@ type MediaEntity(m: Media) as this =
     do
         e.PartitionKey <- "media"
         e.RowKey <- sprintf "IG-%s" m.ExternalId
+
+    new() = MediaEntity(
+        { Type = Instagram
+          ExternalId = ""
+          AddedBy = ""
+          AddedOn = System.DateTimeOffset.MinValue })
+
     member val ExternalId = m.ExternalId with get, set
     member val AddedBy = m.AddedBy with get, set
     member val AddedOn = m.AddedOn with get, set
@@ -46,6 +53,17 @@ type StorageClient(connectionString: string, tableName: string) =
     let executeOperation = table.ExecuteAsync >> Async.AwaitTask
     
     let (|SuccessCode|_|) v = if v >= 200 && v < 300 then Some v else None
+
+    member __.RetrieveMedia query count = async {
+            let c = System.Nullable<int> count
+            let tq = TableQuery<MediaEntity>().Where(query).Take(c)
+            let rec loop (t: TableContinuationToken) m = async {
+                    let! result = table.ExecuteQuerySegmentedAsync(tq, t) |> Async.AwaitTask
+                    let m' = List.ofSeq result.Results |> List.append m 
+                    return! loop result.ContinuationToken m'
+                }
+            return! loop null List.empty<MediaEntity>
+        }
 
     member __.StoreUser u = async {
             let! c = createTable ()

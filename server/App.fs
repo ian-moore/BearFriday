@@ -102,6 +102,13 @@ let addBearMedia (storage: StorageClient) =
             return! igError next ctx
     }
 
+let getBearMedia (storage: StorageClient) =
+    let mediaCount = 100
+    fun next (ctx: HttpContext) -> task {
+        let! x = storage.RetrieveMedia ()
+        return! next ctx
+    }
+
 let errorResponse (ex: exn) next ctx =
     (clearResponse >=> setStatusCode 500 >=> text ex.Message) next ctx
 
@@ -135,7 +142,7 @@ let createApp config : HttpHandler =
         )
         subRoute "/api" 
             (choose [
-                route "/bears" >=> json ()
+                route "/bears" >=> (getBearMedia storage)
                 route "/curate" >=> requireLogin >=> choose [
                     POST >=> (addBearMedia storage)
                     DELETE >=> text "delete a bear media."

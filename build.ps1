@@ -40,7 +40,7 @@ Set-Location '..'
 if(-not(Test-Path -Path $buildDir)) {
     New-Item -ItemType directory -Path $buildDir
 }
-Copy-Item "$serverDir\bin\$configuration\netcoreapp1.1\*" $buildDir -Recurse
+Copy-Item "$serverDir\bin\$configuration\netcoreapp2.0\*" $buildDir -Recurse
 @('css', 'dist', 'img') | % { 
     $outputDir = if ($_ -eq 'dist') { 'js' } else { $_ }
     Copy-Item "$clientDir\$_" "$buildDir\wwwroot\$outputDir" -Recurse  

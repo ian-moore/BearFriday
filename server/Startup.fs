@@ -4,6 +4,8 @@ open BearFriday.Server.App
 open Giraffe.Middleware
 open Giraffe.Razor.Middleware
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
@@ -13,17 +15,19 @@ open System
 open System.IO
 
 type Startup(env: IHostingEnvironment) =
-    let cookieAuth =
-        CookieAuthenticationOptions(
-            AuthenticationScheme = authScheme,
-            AutomaticAuthenticate = true,
-            AutomaticChallenge = false,
-            CookieHttpOnly = true,
-            CookieSecure = CookieSecurePolicy.SameAsRequest,
-            SlidingExpiration = true,
-            ExpireTimeSpan = TimeSpan.FromDays 30.0
-        )
 
+    let cookieOptions (o : CookieAuthenticationOptions) =
+        o.Cookie.HttpOnly <- true
+        o.Cookie.SecurePolicy <- Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest
+        o.SlidingExpiration <- true
+        o.ExpireTimeSpan <- TimeSpan.FromDays 30.0
+        o.LoginPath <- PathString "/login"
+        o.LogoutPath <- PathString "/logout"
+    
+    let authenticationOptions (o: AuthenticationOptions) =
+        o.DefaultAuthenticateScheme <- CookieAuthenticationDefaults.AuthenticationScheme
+        o.DefaultChallengeScheme <- CookieAuthenticationDefaults.AuthenticationScheme
+    
     member __.Configure(app: IApplicationBuilder) (env: IHostingEnvironment) (logger: ILoggerFactory) =
         let configBuilder = 
             ConfigurationBuilder()
@@ -42,8 +46,8 @@ type Startup(env: IHostingEnvironment) =
 
         logger.AddConsole(LogLevel.Error).AddDebug() |> ignore
         
-        app.UseGiraffeErrorHandler errorHandler
-        app.UseCookieAuthentication cookieAuth |> ignore
+        app.UseGiraffeErrorHandler errorHandler |> ignore
+        app.UseAuthentication () |> ignore
         app.UseStaticFiles() |> ignore
         createApp appSettings |> app.UseGiraffe
 
@@ -52,4 +56,8 @@ type Startup(env: IHostingEnvironment) =
         let env = sp.GetService<IHostingEnvironment>()
         let viewsFolderPath = Path.Combine(env.ContentRootPath, "Views")
         services.AddRazorEngine viewsFolderPath |> ignore
+        
+        let authBuilder = 
+            services.AddAuthentication (Action<AuthenticationOptions> authenticationOptions)
+        authBuilder.AddCookie (Action<CookieAuthenticationOptions> cookieOptions)
         

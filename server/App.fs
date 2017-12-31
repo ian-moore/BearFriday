@@ -4,6 +4,9 @@ open BearFriday.Server.Storage
 open Giraffe
 open Giraffe.HttpHandlers
 open Giraffe.Razor.HttpHandlers
+open Giraffe.Tasks
+open Microsoft.AspNetCore.Authentication
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Logging
 open System
@@ -55,8 +58,8 @@ let signIn (userId, username) =
         let claims = 
             [ Claim(ClaimTypes.Name, username, ClaimValueTypes.String, issuer)
               Claim(ClaimTypes.NameIdentifier, userId, ClaimValueTypes.String, issuer) ]
-        let user = ClaimsIdentity(claims, authScheme) |> ClaimsPrincipal
-        do! ctx.Authentication.SignInAsync(authScheme, user)
+        let user = ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme) |> ClaimsPrincipal
+        do! ctx.SignInAsync user
         return! next ctx
     }
 
@@ -83,7 +86,7 @@ type NewMedia =
 let addBearMedia (storage: StorageClient) =
     let igError = setStatusCode 400 >=> text "Invalid Instagram URL."
     fun next (ctx: HttpContext) -> task {
-        let! media = ctx.BindForm<NewMedia> ()
+        let! media = ctx.BindFormAsync<NewMedia> ()
         let parsedId = Instagram.getIdFromShareUrl media.InstagramUrl
         let user = getUserFromClaims ctx
         match parsedId with
@@ -105,7 +108,7 @@ let addBearMedia (storage: StorageClient) =
 let getBearMedia (storage: StorageClient) =
     let mediaCount = 100
     fun next (ctx: HttpContext) -> task {
-        let! x = storage.RetrieveMedia ()
+        let! x = storage.RetrieveMedia "" mediaCount
         return! next ctx
     }
 
@@ -149,6 +152,9 @@ let createApp config : HttpHandler =
                 ]
             ])
         route "/curate" >=> requireLogin >=> razorHtmlView "Curate" ()
-        route "/logout" >=> requireLogin >=> signOff authScheme >=> redirectTo false "/"
+        route "/logout" 
+            >=> requireLogin
+            >=> signOff CookieAuthenticationDefaults.AuthenticationScheme 
+            >=> redirectTo false "/"
         setStatusCode 404 >=> text "Not Found" 
     ]

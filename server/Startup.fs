@@ -46,8 +46,8 @@ type Startup(env: IHostingEnvironment) =
 
         logger.AddConsole(LogLevel.Error).AddDebug() |> ignore
         
-        app.UseGiraffeErrorHandler errorHandler |> ignore
         app.UseAuthentication () |> ignore
+        app.UseGiraffeErrorHandler errorHandler |> ignore
         app.UseStaticFiles() |> ignore
         createApp appSettings |> app.UseGiraffe
 
@@ -60,4 +60,5 @@ type Startup(env: IHostingEnvironment) =
         let authBuilder = 
             services.AddAuthentication (Action<AuthenticationOptions> authenticationOptions)
         authBuilder.AddCookie (Action<CookieAuthenticationOptions> cookieOptions)
+            |> ignore
         

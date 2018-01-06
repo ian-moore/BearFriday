@@ -48,6 +48,9 @@ Copy-Item "$serverDir\bin\$configuration\netcoreapp2.0\*" $buildDir -Recurse
 
 if ($Run) {
     Set-Location $buildDir
-    dotnet 'BearFriday.Server.dll'
-    Set-Location '..'
+    try {
+        dotnet 'BearFriday.Server.dll'
+    } finally {
+        Set-Location '..'
+    }
 }

@@ -41,10 +41,15 @@ let enableFeature toggle =
         | false -> return None
     }
 
+let errorResponse (ex: exn) next ctx =
+    printfn "%s" "errorResponse"
+    (clearResponse >=> setStatusCode 500 >=> text ex.Message) next ctx
+
 let requestInstagramToken config = 
     Instagram.requestAccessToken config.InstagramClientId config.InstagramClientSecret config.InstagramRedirectUri
 
 let storeToken (storage: StorageClient) (token: Instagram.Token) =
+    printfn "storeToken: %A" token.AccessToken
     { Id = token.User.Id
       Username = token.User.Username
       AccessToken = token.AccessToken } 
@@ -54,13 +59,20 @@ let authScheme = "Cookie"
 
 let signIn (userId, username) =
     fun (next: HttpFunc) (ctx: HttpContext) -> task {
+        printfn "UserId: %s, UserName: %s" userId username
         let issuer = "http://localhost:5000"
         let claims = 
             [ Claim(ClaimTypes.Name, username, ClaimValueTypes.String, issuer)
               Claim(ClaimTypes.NameIdentifier, userId, ClaimValueTypes.String, issuer) ]
         let user = ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme) |> ClaimsPrincipal
-        do! ctx.SignInAsync user
-        return! next ctx
+
+        try
+            //let! _ = ctx.SignInAsync user
+            return! next ctx
+        with 
+        | ex ->
+            printfn "Sign In Error: %s" ex.Message
+            return! errorResponse ex next ctx
     }
 
 let getUserFromClaims (ctx: HttpContext) =
@@ -68,14 +80,29 @@ let getUserFromClaims (ctx: HttpContext) =
     let username = ctx.User.FindFirst ClaimTypes.Name
     userId.Value, username.Value
 
-let handleAsyncResult (okFunc: 'a -> HttpHandler) (errorFunc: 'b -> HttpHandler) ar =
+let handleAsyncResult (okFunc: 'a -> HttpHandler) (errorFunc: 'b -> HttpHandler) (ar: Async<Result<'a,'b>>) =
     fun next ctx -> task {
-        let! r = ar |> Async.StartAsTask
-        match r with
-        | Ok v -> 
-            return! okFunc v next ctx
-        | Error ex -> 
-            return! errorFunc ex next ctx
+        printfn "%s" "handleAsyncResult"
+        try
+            let! r = ar
+            match r with
+            | Ok v -> 
+                printfn "%s" "okFunc"
+                try
+                    let! x = okFunc v next ctx
+                    return x
+                with
+                | ex -> 
+                    printfn "handle error: %s" ex.Message
+                    return! okFunc v next ctx
+            | Error ex -> 
+                printfn "%s" "errorFunc"
+                return! errorFunc ex next ctx
+        with
+        | ex ->
+            printfn "handleAsyncResult catch: %s" ex.Message
+            printfn "%s" ex.StackTrace
+            return! errorResponse ex next ctx
     }
 
 [<CLIMutable>]
@@ -111,9 +138,6 @@ let getBearMedia (storage: StorageClient) =
         let! x = storage.RetrieveMedia "" mediaCount
         return! next ctx
     }
-
-let errorResponse (ex: exn) next ctx =
-    (clearResponse >=> setStatusCode 500 >=> text ex.Message) next ctx
 
 let errorHandler (ex: exn) (logger: ILogger) ctx =
     logger.LogError(EventId(0), ex, "An unhandled exception has occurred while executing the request.")
@@ -151,7 +175,8 @@ let createApp config : HttpHandler =
                     DELETE >=> text "delete a bear media."
                 ]
             ])
-        route "/curate" >=> requireLogin >=> razorHtmlView "Curate" ()
+        route "/curate" >=> text "curate"
+        //route "/curate" >=> requireLogin >=> razorHtmlView "Curate" ()
         route "/logout" 
             >=> requireLogin
             >=> signOff CookieAuthenticationDefaults.AuthenticationScheme 

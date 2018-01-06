@@ -11,9 +11,9 @@ class App extends React.Component {
         };
     }
     componentDidMount() {
-        fetch('/api/bears')
-            .then(resp => resp.json())
-            .then(console.log);
+        // fetch('/api/bears')
+        //     .then(resp => resp.json())
+        //     .then(console.log);
     }
     render() {
         return <span>Hello world!</span>;

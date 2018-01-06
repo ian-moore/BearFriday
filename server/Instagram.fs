@@ -17,7 +17,7 @@ type Token =
       User: InstagramUser }
     
 let buildAuthUrl =
-    sprintf "https://api.instagram.com/oauth/authorize/?client_id=%s&redirect_uri=%s&response_type=code"
+    sprintf "https://www.instagram.com/oauth/authorize/?client_id=%s&redirect_uri=%s&response_type=code"
 
 let getIdFromShareUrl url =
     let m = Regex.Match(url, "https?://instagram.com/p/([\w-_]+)/")
@@ -46,6 +46,8 @@ let requestAccessToken clientId clientSecret redirectUri code = async {
                 ("code", code)
             ]
         
+        printfn "requestParams: %A" requestParams
+
         let postData = new FormUrlEncodedContent(requestParams)
         let! resp = 
             httpClient.PostAsync("https://api.instagram.com/oauth/access_token", postData)

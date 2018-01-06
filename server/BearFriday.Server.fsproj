@@ -5,7 +5,10 @@
     <AssemblyName>BearFriday.Server</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>BearFriday.Server</PackageId>
+    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <!-- an empty DefineConstants here triggers https://github.com/dotnet/sdk/issues/1628 -->
+    <DefineConstants>SDK_ISSUE_1628_WORKAROUND</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Core" Version="4.2.*" />
@@ -24,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utility.fs" />
+    <Compile Include="TasksSrc.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Instagram.fs" />
     <Compile Include="App.fs" />

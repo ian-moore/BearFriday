@@ -10,6 +10,7 @@ type AsyncResult<'a,'b> = Async<Result<'a,'b>>
 module AsyncResult =
     /// Asynchronous bind for Async<Result<'a,'b>>
     let bind (f: 'a -> AsyncResult<'c,'b>) (x: AsyncResult<'a,'b>) = async {
+            printfn "%s" "AsyncResult.bind"
             let! r = x
             match r with
             | Ok v -> return! f v

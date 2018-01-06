@@ -23,9 +23,16 @@ type Startup(env: IHostingEnvironment) =
         o.ExpireTimeSpan <- TimeSpan.FromDays 30.0
         o.LoginPath <- PathString "/login"
         o.LogoutPath <- PathString "/logout"
+        o.Events.OnRedirectToLogin <- 
+            (fun ctx ->
+                ctx.Response.StatusCode <- 401
+                System.Threading.Tasks.Task.CompletedTask
+            )
+        
     
     let authenticationOptions (o: AuthenticationOptions) =
         o.DefaultAuthenticateScheme <- CookieAuthenticationDefaults.AuthenticationScheme
+        // o.DefaultSignInScheme
         o.DefaultChallengeScheme <- CookieAuthenticationDefaults.AuthenticationScheme
     
     member __.Configure(app: IApplicationBuilder) (env: IHostingEnvironment) (logger: ILoggerFactory) =

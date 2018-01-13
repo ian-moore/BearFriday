@@ -21,3 +21,11 @@ type MediaEntity() =
     member val RandomKeyA = -1 with get, set
     member val RandomKeyB = -1 with get, set
     member val RandomKeyC = -1 with get, set
+
+
+type ConfigEntity() =
+    inherit TableEntity()
+
+    member val RandomKeyA = -1 with get, set
+    member val RandomKeyB = -1 with get, set
+    member val RandomKeyC = -1 with get, set

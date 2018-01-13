@@ -6,7 +6,7 @@ open Microsoft.Azure.WebJobs.Host
 open System
 
 
-let getRandomKeys (random: System.Random) =
+let getRandomKeys (random: Random) =
     ( random.Next 8, random.Next 8, random.Next 8 )
 
 

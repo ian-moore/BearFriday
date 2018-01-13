@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Compile Include="Model.fs" />
-    <Compile Include="RandomizeMediaTable.fs" />
+    <Compile Include="SetMediaTableRandomKeys.fs" />
     <Compile Include="ExtractSeedDataToQueue.fs" />
     <Compile Include="MediaQueueToMediaTable.fs" />
   </ItemGroup>

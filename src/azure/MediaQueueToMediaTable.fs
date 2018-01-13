@@ -1,4 +1,4 @@
-module BearFriday.Azure.SeedQueueToMediaTable
+module BearFriday.Azure.MediaQueueToMediaTable
 
 open BearFriday.Azure.Model
 open Microsoft.Azure.WebJobs

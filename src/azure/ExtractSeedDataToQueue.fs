@@ -1,4 +1,4 @@
-module BearFriday.Azure.ExtractInstagramDataToQueue
+module BearFriday.Azure.ExtractSeedDataToQueue
 
 open BearFriday.Azure.Model
 open Microsoft.Azure.WebJobs
@@ -18,7 +18,7 @@ let readStream (s: Stream) =
 
 
 let getIdFromShareUrl url =
-    let m = Regex.Match(url, "https?://instagram.com/p/([\w-_]+)/")
+    let m = Regex.Match(url, "https?://[w]{0,3}[.]?instagram.com/p/([\w-_]+)/")
     match m.Success with
     | true -> Some m.Groups.[1].Value
     | false -> None

@@ -12,7 +12,7 @@ npm install -g azure-functions-core-tools@core
 ```
 * Install Invoke-Build
 ```
-Install-Module InvokeBuild
+PS> Install-Module InvokeBuild
 ```
 * Add `src/azure/local.settings.json` file:
 ```
@@ -27,4 +27,9 @@ Install-Module InvokeBuild
 ## Build
 ```
 PS> invoke-build
+```
+
+## Test
+```
+PS> invoke-build test
 ```

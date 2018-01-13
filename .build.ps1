@@ -27,4 +27,6 @@ task RunAzure PublishAzure, {
     exec { & func start }
 }
 
+task test TestAzure
+
 task . BuildAzure

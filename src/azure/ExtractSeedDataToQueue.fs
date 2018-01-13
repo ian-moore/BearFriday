@@ -24,7 +24,7 @@ let getIdFromShareUrl url =
     | false -> None
 
 
-[<FunctionName("ExtractInstagramDataToQueue")>]
+[<FunctionName("ExtractSeedDataToQueue")>]
 let run 
     ( [<HttpTrigger>] req: HttpRequestMessage,
       [<Blob("seed-data/data.csv", FileAccess.Read)>] blob: Stream,

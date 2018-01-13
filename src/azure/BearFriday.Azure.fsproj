@@ -6,8 +6,9 @@
 
   <ItemGroup>
     <Compile Include="Model.fs" />
-    <Compile Include="ExtractInstagramDataToQueue.fs" />
-    <Compile Include="SeedQueueToMediaTable.fs" />
+    <Compile Include="RandomizeMediaTable.fs" />
+    <Compile Include="ExtractSeedDataToQueue.fs" />
+    <Compile Include="MediaQueueToMediaTable.fs" />
   </ItemGroup>
 
   <ItemGroup>

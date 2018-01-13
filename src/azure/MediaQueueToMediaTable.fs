@@ -6,9 +6,9 @@ open Microsoft.Azure.WebJobs.Host
 open System
 
 
-[<FunctionName("SeedQueueToMediaTable")>]
+[<FunctionName("MediaQueueToMediaTable")>]
 let run 
-    ( [<QueueTrigger("seed-queue")>] media: Media,
+    ( [<QueueTrigger("media-queue")>] media: Media,
       log: TraceWriter 
     ) : [<Table("media")>] MediaEntity = 
     MediaEntity(

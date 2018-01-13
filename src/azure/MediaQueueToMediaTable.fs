@@ -6,16 +6,25 @@ open Microsoft.Azure.WebJobs.Host
 open System
 
 
+let getRandomKeys (random: System.Random) =
+    ( random.Next 8, random.Next 8, random.Next 8 )
+
+
 [<FunctionName("MediaQueueToMediaTable")>]
 let run 
     ( [<QueueTrigger("media-queue")>] media: Media,
       log: TraceWriter 
     ) : [<Table("media")>] MediaEntity = 
+    let (keyA, keyB, keyC) = Random () |> getRandomKeys
+
     MediaEntity(
         PartitionKey = media.Source,
         RowKey = media.ExternalId,
         AddedBy = media.AddedBy,
-        AddedOn = DateTimeOffset.UtcNow
+        AddedOn = DateTimeOffset.UtcNow,
+        RandomKeyA = keyA,
+        RandomKeyB = keyB,
+        RandomKeyC = keyC
     )
         
         

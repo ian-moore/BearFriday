@@ -17,3 +17,7 @@ type MediaEntity() =
     inherit TableEntity()
     member val AddedBy = "" with get, set
     member val AddedOn = DateTimeOffset.UtcNow with get, set
+    
+    member val RandomKeyA = -1 with get, set
+    member val RandomKeyB = -1 with get, set
+    member val RandomKeyC = -1 with get, set

@@ -1,5 +1,8 @@
 bin/
 obj/
-local.settings.json
-
+dist/
+elm-stuff/
+node_modules/
 scripts/
+
+local.settings.json

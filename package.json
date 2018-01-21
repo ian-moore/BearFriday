@@ -4,8 +4,21 @@
   "description": "See new bears every Friday!",
   "main": "index.js",
   "scripts": {
+    "build": "webpack --optimize-minimize",
+    "dev": "webpack-dev-server --port 3000",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "css-loader": "^0.28.9",
+    "elm-webpack-loader": "^4.4.0",
+    "file-loader": "^1.1.6",
+    "node-sass": "^4.7.2",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.19.1",
+    "url-loader": "^0.6.2",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.0"
+  }
 }

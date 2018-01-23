@@ -9,16 +9,13 @@ open System
 let getRandomKeys (random: Random) =
     ( random.Next 8, random.Next 8, random.Next 8 )
 
-
-
-
 let [<Literal>] FridaySchedule = "0 0 2 * * 5"
 
 let [<Literal>] DebugSchedule = "0 0/1 * * * *"
 
 [<FunctionName("SetMediaTableRandomKeys")>]
 let run 
-    ( [<TimerTrigger(DebugSchedule)>] timer: TimerInfo,
+    ( [<TimerTrigger(FridaySchedule)>] timer: TimerInfo,
       [<Table("media", "config")>] config: CloudTable, 
       log: TraceWriter
     ) = 

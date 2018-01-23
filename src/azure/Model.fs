@@ -23,6 +23,10 @@ type MediaEntity() =
     member val RandomKeyC = -1 with get, set
 
 
+let recordFromMediaEntity (m: MediaEntity) =
+    { Source = m.PartitionKey; ExternalId = m.RowKey; AddedBy = m.AddedBy }
+
+
 type ConfigEntity() =
     inherit TableEntity()
 

@@ -9,6 +9,7 @@
     <Compile Include="SetMediaTableRandomKeys.fs" />
     <Compile Include="ExtractSeedDataToQueue.fs" />
     <Compile Include="MediaQueueToMediaTable.fs" />
+    <Compile Include="QueryCurrentMediaFromTable.fs" />
   </ItemGroup>
 
   <ItemGroup>

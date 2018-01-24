@@ -2,7 +2,6 @@ module BearFriday.Azure.QueryCurrentMediaFromTable
 
 open BearFriday.Azure.Model
 open Microsoft.AspNetCore.Mvc
-open Microsoft.AspNetCore.Http
 open Microsoft.Azure.WebJobs
 open Microsoft.Azure.WebJobs.Host
 open Microsoft.WindowsAzure.Storage.Table
@@ -27,16 +26,24 @@ let getTableQuery (config: ConfigEntity) =
     TableQuery<MediaEntity>()
         .Where(
             TableQuery.CombineFilters(
-                TableQuery.GenerateFilterConditionForInt(
-                    "RandomKeyA", 
-                    QueryComparisons.Equal, 
-                    config.RandomKeyA
+                TableQuery.GenerateFilterCondition(
+                    "PartitionKey",
+                    QueryComparisons.Equal,
+                    "instagram"
                 ),
                 TableOperators.And,
-                TableQuery.GenerateFilterConditionForInt(
-                    "RandomKeyB", 
-                    QueryComparisons.Equal, 
-                    config.RandomKeyB
+                TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterConditionForInt(
+                        "RandomKeyA", 
+                        QueryComparisons.Equal, 
+                        config.RandomKeyA
+                    ),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterConditionForInt(
+                        "RandomKeyB", 
+                        QueryComparisons.Equal, 
+                        config.RandomKeyB
+                    )
                 )
             )
         )
@@ -66,12 +73,11 @@ let flip f x y = f y x
 [<FunctionName("QueryCurrentMediaFromTable")>]
 let run 
     ( [<HttpTrigger>] req: HttpRequestMessage,
-      [<Table("media", "instagram")>] mediaTable: CloudTable, 
-      [<Table("media", "config")>] configTable: CloudTable, 
+      [<Table("media")>] table: CloudTable, 
       log: TraceWriter
     ) = 
     async {
-        let! config = getConfig configTable
+        let! config = getConfig table
         log.Info
             <| sprintf "Config random keys - A: %i B: %i C: %i" 
                 config.RandomKeyA 
@@ -79,7 +85,7 @@ let run
                 config.RandomKeyC
 
         let query = getTableQuery config
-        let! tableRows = getMedia mediaTable query null Seq.empty
+        let! tableRows = getMedia table query null Seq.empty
 
         let sorted = 
             match config.RandomKeyC >= 4 with

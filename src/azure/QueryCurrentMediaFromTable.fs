@@ -1,9 +1,11 @@
 module BearFriday.Azure.QueryCurrentMediaFromTable
 
 open BearFriday.Azure.Model
-open Microsoft.WindowsAzure.Storage.Table
+open Microsoft.AspNetCore.Mvc
+open Microsoft.AspNetCore.Http
 open Microsoft.Azure.WebJobs
 open Microsoft.Azure.WebJobs.Host
+open Microsoft.WindowsAzure.Storage.Table
 open System
 open System.Net.Http
 
@@ -25,16 +27,16 @@ let getTableQuery (config: ConfigEntity) =
     TableQuery<MediaEntity>()
         .Where(
             TableQuery.CombineFilters(
-                TableQuery.GenerateFilterCondition(
+                TableQuery.GenerateFilterConditionForInt(
                     "RandomKeyA", 
                     QueryComparisons.Equal, 
-                    Convert.ToString config.RandomKeyA
+                    config.RandomKeyA
                 ),
                 TableOperators.And,
-                TableQuery.GenerateFilterCondition(
+                TableQuery.GenerateFilterConditionForInt(
                     "RandomKeyB", 
                     QueryComparisons.Equal, 
-                    Convert.ToString config.RandomKeyB
+                    config.RandomKeyB
                 )
             )
         )
@@ -49,36 +51,49 @@ let rec getMedia
         let! segment = 
             table.ExecuteQuerySegmentedAsync(query, token) 
             |> Async.AwaitTask
+        
+        let results = Seq.append media segment.Results
         match isNull segment.ContinuationToken with
-        | true -> return media
+        | true -> return results
         | false ->
-            return!
-                Seq.append media segment.Results
-                |> getMedia table query segment.ContinuationToken
+            return! getMedia table query segment.ContinuationToken results
     }
 
-        
+
+let flip f x y = f y x
 
 
 [<FunctionName("QueryCurrentMediaFromTable")>]
 let run 
     ( [<HttpTrigger>] req: HttpRequestMessage,
-      [<Table("media", "media")>] mediaTable: CloudTable, 
+      [<Table("media", "instagram")>] mediaTable: CloudTable, 
       [<Table("media", "config")>] configTable: CloudTable, 
       log: TraceWriter
     ) = 
     async {
         let! config = getConfig configTable
-        let query = getTableQuery config
+        log.Info
+            <| sprintf "Config random keys - A: %i B: %i C: %i" 
+                config.RandomKeyA 
+                config.RandomKeyB 
+                config.RandomKeyC
 
-        let! entities = getMedia mediaTable query null Seq.empty
+        let query = getTableQuery config
+        let! tableRows = getMedia mediaTable query null Seq.empty
 
         let sorted = 
             match config.RandomKeyC >= 4 with
-            | true -> entities |> Seq.sortBy (fun m -> m.RandomKeyC)
-            | false -> entities |> Seq.sortByDescending (fun m -> m.RandomKeyC)
+            | true -> tableRows |> Seq.sortBy (fun m -> m.RandomKeyC)
+            | false -> tableRows |> Seq.sortByDescending (fun m -> m.RandomKeyC)
+        
+        let rowCount = Seq.length sorted;
+        log.Info <| sprintf "Retrieved %i rows" rowCount
 
-        return
-            Seq.take 20 sorted
+        let media =
+            rowCount < 20
+            |> (function | true -> rowCount | false -> 20)
+            |> flip Seq.take sorted
             |> Seq.map recordFromMediaEntity
+        
+        return ObjectResult media
     } |> Async.RunSynchronously

@@ -33,3 +33,11 @@ PS> invoke-build
 ```
 PS> invoke-build test
 ```
+
+## Deploy
+
+Deploy azure functions from the publish folder
+```
+PS> func azure login
+PS> func azure functionapp publish BearFridayFunctions
+```

@@ -6,14 +6,32 @@ import Message exposing (..)
 import Model exposing (..)
 
 
+loadingSpinner : () -> Html Msg
+loadingSpinner () =
+    div [ class "lds-grid" ]
+        [ div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        , div [] []
+        ]
+
+
 renderLoadingMedia : App -> Html Msg
 renderLoadingMedia app =
-    div [] [ text "Loading" ]
+    div [ class "loading-root" ] 
+        [ loadingSpinner ()
+        ]
 
 
 renderViewingMedia : App -> Html Msg
 renderViewingMedia app =
-    div [] [ text "Viewing" ]
+    div [ class "mediagrid-root" ] 
+        [ text "Viewing" ]
 
 
 renderBody : App -> Html Msg

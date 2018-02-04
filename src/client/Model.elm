@@ -1,18 +1,16 @@
 module Model exposing (..)
 
-import Http
-import Navigation exposing (Location)
-
 
 type AppState
-    = Loading
-    | Done
+    = LoadingMedia
+    | MediaError String
+    | ViewingMedia
 
 
 type alias BearMedia =
     { source: String
     , externalId: String 
-    , addedBy: Int
+    , addedBy: String
     }
 
 
@@ -20,9 +18,3 @@ type alias App =
     { state: AppState
     , media: List BearMedia
     }
-
-
-type Msg
-    = UrlChange Location
-    | NoOp
-    | MediaLoaded (Result Http.Error (List BearMedia))

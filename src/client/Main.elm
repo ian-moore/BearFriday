@@ -2,9 +2,11 @@ module Main exposing (main)
 
 import Http
 import Json.Decode as Decode
+import Message exposing (..)
 import Model exposing (..)
 import Navigation exposing (Location)
 import Route exposing (parseRoute, Route(..))
+import Update
 import View
 
 
@@ -13,7 +15,7 @@ decodeMedia =
     Decode.map3 BearMedia 
         (Decode.field "source" Decode.string)
         (Decode.field "externalId" Decode.string)
-        (Decode.field "addedBy" Decode.int)
+        (Decode.field "addedBy" Decode.string)
 
 
 decodeMediaList : Decode.Decoder (List BearMedia)
@@ -30,7 +32,7 @@ loadMedia () =
 
 initialApp : App
 initialApp =
-    { state = Loading
+    { state = LoadingMedia
     , media = []
     }
 
@@ -52,12 +54,9 @@ update msg app =
         NoOp ->
             app ! []
         MediaLoaded result ->
-            case result of
-                Ok mediaList ->
-                    app ! []
-                Err error ->
-                    app ! []
+            Update.mediaLoaded app result
         UrlChange location ->
+            Debug.log "UrlChange"
             app ! []
 
 

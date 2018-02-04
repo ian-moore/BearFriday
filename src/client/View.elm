@@ -1,6 +1,7 @@
 module View exposing (render)
 
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Message exposing (..)
 import Model exposing (..)
 
@@ -28,7 +29,14 @@ renderBody app =
 
 render : App -> Html Msg
 render app =
-    div []
-        [ text  "BearFriday"
-        , renderBody app
+    div [ id "bear-friday" ]
+        [ div [ class "header-root" ]
+            [ h1 [ class "header-h1" ]
+                [ text  "Bear Friday" ]
+            , div [ class "header-note" ] 
+                [ text "See new bears every Friday!" ] 
+            ]
+        , div [ class "container-root" ]
+            [ renderBody app
+            ]
         ]

@@ -28,6 +28,7 @@ update msg app =
         MediaLoaded result ->
             Update.mediaLoaded app result
         EmbedsLoaded result ->
+            Debug.log "EmbedsLoaded"
             Update.embedsLoaded app result
         UrlChange location ->
             Debug.log "UrlChange"

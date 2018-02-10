@@ -99,6 +99,7 @@ render app =
                 [ text "See new bears every Friday!" ] 
             ]
         , div [ class "container-root" ]
-            [ renderBody app
-            ]
+            [ renderBody app ]
+        , div [ class "footer-root" ] 
+            [ text "Created by Ian Moore" ]
         ]

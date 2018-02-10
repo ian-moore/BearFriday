@@ -105,10 +105,26 @@ body {
 }
 
 .mediagrid-root {
+    align-items: center;
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
     margin: auto;
     max-height: 3000px;
     max-width: 1000px;
+}
+
+.footer-root {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    font-size: 0.75em;
+    text-align: center;
+}
+
+@media (max-width: 1024px) {
+    .mediagrid-root {
+        max-height: unset;
+        max-width: calc(100% - 40px);
+    }
 }

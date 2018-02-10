@@ -1,5 +1,6 @@
 'use strict';
 
+require('./img/favicon.ico');
 require('./index.html');
 require('./index.css');
 require('./loading-spinner.css');

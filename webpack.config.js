@@ -16,6 +16,10 @@ module.exports = {
         use: 'file-loader?name=[name].[ext]'
       },
       {
+        test: /\.jpe?g$|\.ico$|\.gif$|\.png$|\.svg$|\.woff$|\.ttf$|\.wav$|\.mp3$/,
+        loader: 'file-loader?name=img/[name].[ext]'
+      },
+      {
         test: /\.elm$/,
         exclude: [/elm-stuff/, /node_modules/],
         use: [

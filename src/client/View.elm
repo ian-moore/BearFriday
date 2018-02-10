@@ -101,5 +101,23 @@ render app =
         , div [ class "container-root" ]
             [ renderBody app ]
         , div [ class "footer-root" ] 
-            [ text "Created by Ian Moore" ]
+            [ text "Created by Ian Moore"
+            , a [ href "https://github.com/ian-moore" 
+                , target "_blank" 
+                ] 
+                [ img 
+                    [ class "footer-icon"
+                    , src "/img/GitHub-Mark-32px.png" ] 
+                    []
+                ]
+            , a [ href "https://twitter.com/scarbor0" 
+                , target "_blank" 
+                ] 
+                [ img 
+                    [ class "footer-icon"
+                    , src "/img/Twitter_Social_Icon_Circle_Color.png"
+                    ]
+                    []
+                ]
+            ]
         ]

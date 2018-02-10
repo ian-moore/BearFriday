@@ -1,6 +1,7 @@
 'use strict';
 
-require('./img/favicon.ico');
+// require('./img/favicon.ico');
+require.context('./img', false, /\.(png|jpe?g|svg|ico)$/);
 require('./index.html');
 require('./index.css');
 require('./loading-spinner.css');

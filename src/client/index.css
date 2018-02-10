@@ -120,6 +120,15 @@ body {
     padding: 10px;
     font-size: 0.75em;
     text-align: center;
+    display: flex;
+    justify-content:  center;
+
+}
+
+.footer-icon {
+    height: 18px;
+    margin-left: 4px;
+    width: 18px;
 }
 
 @media (max-width: 1024px) {

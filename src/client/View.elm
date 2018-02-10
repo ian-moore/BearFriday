@@ -60,7 +60,13 @@ instagramCard embed =
         , div [ class "embed-description" ]
             [ span [] [ text embed.title ]
             ]
-        , div [ class "embed-gradient" ] []
+        , div [ class "embed-moretext" ]
+            [ a [ class "embed-moretext-link"
+                , href (instagramImageHref embed.id)
+                , target "_blank" 
+                ] 
+                [ text "...more" ]
+            ]
         ]
 
 

@@ -27,16 +27,21 @@ loadMedia () =
         Http.send MediaLoaded (Http.get url decodeMediaList)
 
 
-decodeEmbedResponse : String -> Decode.Decoder MediaEmbed
-decodeEmbedResponse id = Decode.map2 MediaEmbed
-    (Decode.succeed id)
-    (Decode.at [ "html" ] Decode.string)
+decodeEmbedResponse : String -> Decode.Decoder InstagramEmbed
+decodeEmbedResponse id = 
+    Decode.map6 InstagramEmbed
+        (Decode.succeed id)
+        (Decode.field  "html" Decode.string)
+        (Decode.field  "author_name" Decode.string)
+        (Decode.field  "author_url" Decode.string)
+        (Decode.field  "title" Decode.string)
+        (Decode.field  "type" Decode.string)
 
 
-getEmbedRequestForId : String -> Http.Request MediaEmbed
+getEmbedRequestForId : String -> Http.Request InstagramEmbed
 getEmbedRequestForId id =
     let
-        url = "https://api.instagram.com/oembed?url=http://instagr.am/p/" ++ id ++ "/"
+        url = "https://api.instagram.com/oembed?url=http://instagr.am/p/" ++ id ++ "/&omitscript=true"
     in
         Http.get url (decodeEmbedResponse id)
 

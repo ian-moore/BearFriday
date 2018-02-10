@@ -30,22 +30,46 @@ renderLoadingMedia app =
         ]
 
 
-textHtml: String -> Html msg
-textHtml t =
-    div [ class "embed-instagram"
-        , Encode.string t |> property "innerHTML" ]
-        []
+instagramImageHref : String -> String
+instagramImageHref id = 
+    "https://instagram.com/p/" ++ id
+
+instagramImageSrc : String -> String
+instagramImageSrc id =
+    "https://instagram.com/p/" ++ id ++ "/media/?size=m"
+
+
+
+instagramCard : InstagramEmbed -> Html Msg
+instagramCard embed =
+    div [ class "embed-root" ]
+        [ div [ class "embed-author" ]
+            [ a [ class "embed-author-link", href embed.authorurl ]
+                [ text embed.authorname ]
+            , span [] [ text " on Instagram" ]
+            ]
+        , a [ class "embed-photo-link"
+            , href (instagramImageHref embed.id) 
+            , target "_blank"
+            ]
+            [ div [ class "embed-photo" ]
+                [ img [ src (instagramImageSrc embed.id) ]
+                    []
+                ]
+            ]
+        , div [ class "embed-description" ]
+            [ span [] [ text embed.title ]
+            ]
+        , div [ class "embed-gradient" ] []
+        ]
 
 
 renderViewingMedia : App -> Html Msg
 renderViewingMedia app =
-    let
-        xyz = 
-            app.media
-            |> List.filterMap (\m -> Dict.get m.externalId app.instagramEmbeds)
-            |> List.map (\m -> textHtml m.html)
-    in
-        div [ class "mediagrid-root" ] xyz
+    app.media
+    |> List.filterMap (\m -> Dict.get m.externalId app.instagramEmbeds)
+    |> List.map instagramCard
+    |> div [ class "mediagrid-root" ]
 
 
 renderBody : App -> Html Msg

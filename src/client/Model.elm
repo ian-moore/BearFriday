@@ -16,16 +16,20 @@ type alias BearMedia =
     }
 
 
-type alias MediaEmbed =
+type alias InstagramEmbed =
     { id: String
     , html: String
+    , authorname: String
+    , authorurl: String
+    , title: String
+    , type_: String
     }
 
 
 type alias App = 
     { state: AppState
     , media: List BearMedia
-    , instagramEmbeds: Dict String MediaEmbed
+    , instagramEmbeds: Dict String InstagramEmbed
     }
 
 

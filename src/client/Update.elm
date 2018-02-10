@@ -20,11 +20,11 @@ mediaLoaded app result =
             } ! []
 
 
-dictFromEmbedsList : List MediaEmbed -> Dict String MediaEmbed
+dictFromEmbedsList : List InstagramEmbed -> Dict String InstagramEmbed
 dictFromEmbedsList = List.map (\e -> (e.id, e)) >> Dict.fromList
 
 
-embedsLoaded : App -> Result Http.Error (List MediaEmbed) -> (App, Cmd Msg)
+embedsLoaded : App -> Result Http.Error (List InstagramEmbed) -> (App, Cmd Msg)
 embedsLoaded app result =
     case result of
         Ok embeds ->

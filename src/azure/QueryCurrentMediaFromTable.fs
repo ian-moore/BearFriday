@@ -7,6 +7,7 @@ open Microsoft.Azure.WebJobs.Host
 open Microsoft.WindowsAzure.Storage.Table
 open System
 open System.Net.Http
+open Microsoft.Azure.WebJobs.Extensions.Http
 
 
 let getConfig (table: CloudTable) =
@@ -72,7 +73,7 @@ let flip f x y = f y x
 
 [<FunctionName("QueryCurrentMediaFromTable")>]
 let run 
-    ( [<HttpTrigger>] req: HttpRequestMessage,
+    ( [<HttpTrigger(AuthorizationLevel.Anonymous, "get")>] req: HttpRequestMessage,
       [<Table("media")>] table: CloudTable, 
       log: TraceWriter
     ) = 

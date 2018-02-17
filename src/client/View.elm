@@ -107,7 +107,7 @@ render app =
                 ] 
                 [ img 
                     [ class "footer-icon"
-                    , src "/img/GitHub-Mark-32px.png" ] 
+                    , src "img/GitHub-Mark-32px.png" ] 
                     []
                 ]
             , a [ href "https://twitter.com/scarbor0" 
@@ -115,7 +115,7 @@ render app =
                 ] 
                 [ img 
                     [ class "footer-icon"
-                    , src "/img/Twitter_Social_Icon_Circle_Color.png"
+                    , src "img/Twitter_Social_Icon_Circle_Color.png"
                     ]
                     []
                 ]

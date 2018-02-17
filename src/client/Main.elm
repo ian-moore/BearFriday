@@ -11,13 +11,13 @@ import View
 
 init : Location -> (App, Cmd Msg)
 init location =
-    case parseRoute location of
+    case Debug.log "parseRoute" (parseRoute location) of
         Just MainRoute ->
             initialApp ! [ loadMedia () ]
         Just CurateRoute ->
             initialApp ! []
         _ ->
-            initialApp ! [ Navigation.modifyUrl "" ]
+            initialApp ! [ Navigation.modifyUrl "/", loadMedia () ]
 
 
 update : Msg -> App -> (App, Cmd Msg)

@@ -22,7 +22,7 @@ decodeMediaList = Decode.list decodeMedia
 loadMedia : () -> Cmd Msg
 loadMedia () =
     let
-        url = "http://bearfridayfunctions.azurewebsites.net/api/QueryCurrentMediaFromTable?code=f8Ksmt61UXXunK7AnUTSykMiFQamzt8VZbUS6CinrdAZ6WZkXYj1uA=="
+        url = "//bearfridayfunctions.azurewebsites.net/api/QueryCurrentMediaFromTable?code=f8Ksmt61UXXunK7AnUTSykMiFQamzt8VZbUS6CinrdAZ6WZkXYj1uA=="
     in
         Http.send MediaLoaded (Http.get url decodeMediaList)
 
